@@ -18,7 +18,7 @@ from deep2fin import run
 warnings.filterwarnings('ignore')
 
 in_channels, hidden_dim, n_layer, n_classes, lr, weight_decay = 6, 16, 2, 2, 1e-1, 0
-batch_size = 512
+batch_size = 128
 
 model = LSTM(in_channels, hidden_dim, n_layer, n_classes)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)

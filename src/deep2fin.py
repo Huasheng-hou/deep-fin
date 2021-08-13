@@ -6,7 +6,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from utils.timeutil import now_str
-from metric.metric import acc_perclass
+from metric.metric import acc_perclass, confusion_matrix, MCC
 
 
 def train(model, device, train_loader, optimizer, loss_fn, epoch, writter):   # 训练模型
@@ -59,9 +59,13 @@ def test(model, device, test_loader, loss_fn, n_classes):    # 测试模型, 得
         preds.append(pred)
         gt.append(y)
     test_loss /= len(test_loader)
+
     preds = torch.cat(preds)
     gt = torch.cat(gt)
     accs = acc_perclass(preds, gt, n_classes)
+    m = confusion_matrix(preds.detach().cpu(), gt.detach().cpu(), n_classes)
+    mcc = MCC(m)
+
     print_str = '\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)'.format(test_loss, acc,
                                                                                      len(test_loader.dataset),
                                                                                      100. * acc /
@@ -69,7 +73,8 @@ def test(model, device, test_loader, loss_fn, n_classes):    # 测试模型, 得
     print(print_str)
     for c in range(n_classes):
         print('Test set Accuracy for class {}: {:.2f}%'.format(c+1, accs[c]))
-    return acc / len(test_loader.dataset) * 100, accs
+    print('Test set MCC: {:.4f}'.format(mcc))
+    return acc / len(test_loader.dataset) * 100, accs, mcc
 
 
 def run(train_loader, test_loader, model, optimizer, loss_fn, n_classes, num_epochs=4, gpu_idx=0,
@@ -91,14 +96,15 @@ def run(train_loader, test_loader, model, optimizer, loss_fn, n_classes, num_epo
 
     for epoch in range(1, NUM_EPOCHS + 1):  # 3epoch
         train(model, DEVICE, train_loader, optimizer, loss_fn, epoch, writter)
-        acc, acc_class = test(model, DEVICE, test_loader, loss_fn, n_classes)
+        acc, acc_class, mcc = test(model, DEVICE, test_loader, loss_fn, n_classes)
         if best_acc < acc:
             best_acc = acc
             best_model = copy.deepcopy(model)
             torch.save(best_model, pjoin('../run', logdir, 'best_model.pt'))
 
-        print("acc is: {:.4f}%, best acc is {:.4f}%\n".format(acc, best_acc))
+        print("acc is: {:.4f}, best acc is {:.4f}\n".format(acc, best_acc))
         writter.add_scalar('acc/val_acc', acc, epoch)
+        writter.add_scalar('acc/mcc', mcc, epoch)
         for c in range(n_classes):
             writter.add_scalar('acc/acc_cls_%d' % (c+1), acc_class[c], epoch)
 
