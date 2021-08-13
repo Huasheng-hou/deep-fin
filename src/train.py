@@ -30,4 +30,4 @@ val_dataset = ACL18_Dataset(root='../data/ACL18/examples', T=10, split='val')
 t_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 v_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False)
 
-run(t_loader, v_loader, model, optimizer, loss, num_epochs=1000, gpu_idx=0)
+run(t_loader, v_loader, model, optimizer, loss, n_classes, num_epochs=1000, gpu_idx=0)
