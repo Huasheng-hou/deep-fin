@@ -1,9 +1,12 @@
+import numpy as np
 import pandas as pd
 import os
 import shutil
 import datetime
 
 from os.path import join as pjoin
+
+from utils import Zscore_norm
 
 root = '../../data/ACL18/price/preprocessed'
 T, lower_bound, upper_bound, time_limit = 10, -0.005, 0.0055, '2016-09-01'
@@ -26,13 +29,21 @@ for f in f_list:
     data.columns = ['date', 'movement_percent', 'open_price', 'high_price', 'low_price', 'close_price', 'volume']
     data = data.iloc[::-1]
 
+    mp = np.asarray((data['movement_percent'])).copy()
+
+    Zscore_norm(data, data.columns[1:])
     length = data.shape[0]
+
     for d in range(T, length):
-        label = data.iloc[d]['movement_percent']
+        # label = data.iloc[d]['movement_percent']
+        label = mp[d]
         t = datetime.datetime.strptime(data.iloc[d]['date'], format_str)
+
         if label >= upper_bound or label <= lower_bound:
+
             lag = data[d - T:d]
             filename = f.split('.')[0] + ' ' + data.iloc[d]['date']
+
             if (time_limit - t).days > 0:
                 train = train.append({'name': filename, 'label': int(label > 0)}, ignore_index=True)
                 lag.to_csv(pjoin(store_path, 'train', filename + '.csv'), index=False)

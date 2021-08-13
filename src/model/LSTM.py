@@ -1,5 +1,5 @@
-import torch
 from torch import nn
+import torch.nn.functional as f
 
 
 class LSTM(nn.Module):
@@ -18,4 +18,5 @@ class LSTM(nn.Module):
         out, (h_n, c_n) = self.lstm(x)
         x = h_n[-1, :, :]
         y = self.fc(x)
+        y = f.softmax(y)
         return y

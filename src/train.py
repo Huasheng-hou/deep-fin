@@ -17,8 +17,8 @@ from deep2fin import run
 
 warnings.filterwarnings('ignore')
 
-in_channels, hidden_dim, n_layer, n_classes, lr, weight_decay = 6, 16, 2, 2, 1e-2, 1e-3
-batch_size = 16
+in_channels, hidden_dim, n_layer, n_classes, lr, weight_decay = 6, 16, 2, 2, 1e-1, 0
+batch_size = 512
 
 model = LSTM(in_channels, hidden_dim, n_layer, n_classes)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
@@ -30,4 +30,4 @@ val_dataset = ACL18_Dataset(root='../data/ACL18/examples', T=10, split='val')
 t_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 v_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False)
 
-run(t_loader, v_loader, model, optimizer, loss, num_epochs=5, gpu_idx=0)
+run(t_loader, v_loader, model, optimizer, loss, num_epochs=1000, gpu_idx=0)
